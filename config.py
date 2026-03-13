@@ -12,7 +12,13 @@ FONT_MESSAGE = ("Segoe UI", 28)
 FONT_SUB = ("Segoe UI", 16)
 FONT_BUTTON = ("Segoe UI", 22)
 
+# Предупреждение (click-through)
+WARNING_ALPHA = 0.35
+FONT_WARNING = ("Segoe UI", 96)
+MSG_WARNING = "Перерыв через"
+
 # Тексты
 MSG_BREAK = "Время для разминки!"
 MSG_DONE = "Я размялся!"
+MSG_LUNCH = "Обеденный перерыв"
 MSG_TRAY_TITLE = "Break Enforcer"

@@ -52,6 +52,43 @@ class SettingsWindow:
 
         row = len(fields)
 
+        # --- Обеденный перерыв ---
+        tk.Label(main_frame, text="Обеденный перерыв:",
+                 anchor="w", **style).grid(row=row, column=0, columnspan=2,
+                                           sticky="w", pady=(15, 5))
+        row += 1
+
+        self._lunch_enabled_var = tk.BooleanVar(value=self.settings.lunch_enabled)
+        lunch_cb = tk.Checkbutton(
+            main_frame, text="Включить обеденный перерыв",
+            variable=self._lunch_enabled_var,
+            bg="#2b2b2b", fg="#ffffff", selectcolor="#3c3c3c",
+            activebackground="#2b2b2b", activeforeground="#ffffff",
+            font=("Segoe UI", 12),
+            command=self._toggle_lunch_fields,
+        )
+        lunch_cb.grid(row=row, column=0, columnspan=2, sticky="w", pady=4)
+        row += 1
+
+        time_entry_style = {"bg": "#3c3c3c", "fg": "#ffffff", "font": ("Segoe UI", 12),
+                            "insertbackground": "#ffffff", "relief": "flat", "width": 6}
+
+        tk.Label(main_frame, text="Начало (ЧЧ:ММ):", anchor="w", **style).grid(
+            row=row, column=0, sticky="w", pady=4)
+        self._lunch_start_entry = tk.Entry(main_frame, **time_entry_style)
+        self._lunch_start_entry.insert(0, self.settings.lunch_start)
+        self._lunch_start_entry.grid(row=row, column=1, sticky="e", pady=4, padx=(10, 0))
+        row += 1
+
+        tk.Label(main_frame, text="Конец (ЧЧ:ММ):", anchor="w", **style).grid(
+            row=row, column=0, sticky="w", pady=4)
+        self._lunch_end_entry = tk.Entry(main_frame, **time_entry_style)
+        self._lunch_end_entry.insert(0, self.settings.lunch_end)
+        self._lunch_end_entry.grid(row=row, column=1, sticky="e", pady=4, padx=(10, 0))
+        row += 1
+
+        self._toggle_lunch_fields()
+
         # --- Упражнения ---
         tk.Label(main_frame, text="Упражнения (одно на строку):",
                  anchor="w", **style).grid(row=row, column=0, columnspan=2,
@@ -94,6 +131,12 @@ class SettingsWindow:
         y = (self.window.winfo_screenheight() - h) // 2
         self.window.geometry(f"+{x}+{y}")
 
+    def _toggle_lunch_fields(self):
+        """Включить/выключить поля времени обеда."""
+        state = "normal" if self._lunch_enabled_var.get() else "disabled"
+        self._lunch_start_entry.config(state=state)
+        self._lunch_end_entry.config(state=state)
+
     def _save(self):
         for key, entry in self._entries.items():
             try:
@@ -101,6 +144,11 @@ class SettingsWindow:
                 setattr(self.settings, key, value)
             except ValueError:
                 pass
+
+        # Обеденный перерыв
+        self.settings.lunch_enabled = self._lunch_enabled_var.get()
+        self.settings.lunch_start = self._lunch_start_entry.get().strip()
+        self.settings.lunch_end = self._lunch_end_entry.get().strip()
 
         exercises_raw = self._exercises_text.get("1.0", "end-1c")
         exercises = [line.strip() for line in exercises_raw.splitlines() if line.strip()]

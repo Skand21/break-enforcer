@@ -95,7 +95,19 @@ DEFAULTS = {
     "max_postpones": 2,
     "idle_threshold_min": 5,
     "exercises": DEFAULT_EXERCISES,
+    "lunch_enabled": False,
+    "lunch_start": "13:00",
+    "lunch_end": "14:00",
 }
+
+
+def _valid_time(value: str) -> bool:
+    """Проверяет формат HH:MM."""
+    try:
+        h, m = value.split(":")
+        return 0 <= int(h) <= 23 and 0 <= int(m) <= 59
+    except (ValueError, AttributeError):
+        return False
 
 
 class Settings:
@@ -186,6 +198,32 @@ class Settings:
     @exercises.setter
     def exercises(self, value: list):
         self._data["exercises"] = list(value)
+
+    @property
+    def lunch_enabled(self) -> bool:
+        return self._data["lunch_enabled"]
+
+    @lunch_enabled.setter
+    def lunch_enabled(self, value: bool):
+        self._data["lunch_enabled"] = bool(value)
+
+    @property
+    def lunch_start(self) -> str:
+        return self._data["lunch_start"]
+
+    @lunch_start.setter
+    def lunch_start(self, value: str):
+        if _valid_time(value):
+            self._data["lunch_start"] = value
+
+    @property
+    def lunch_end(self) -> str:
+        return self._data["lunch_end"]
+
+    @lunch_end.setter
+    def lunch_end(self, value: str):
+        if _valid_time(value):
+            self._data["lunch_end"] = value
 
     # --- Конвертеры в секунды (для остального кода) ---
 

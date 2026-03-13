@@ -46,14 +46,27 @@ class TrayIcon:
         self._thread = None
         self.can_postpone = True
         self.is_break_active = False
+        self.is_lunch_active = False
+        self._lunch_info = ""  # "13:00 – 14:00" или пусто
 
     def _create_menu(self):
-        return pystray.Menu(
+        items = [
             pystray.MenuItem(
                 lambda item: self._get_status(),
                 lambda icon, item: None,
                 enabled=False,
             ),
+        ]
+
+        # Информация об обеде
+        if self._lunch_info:
+            items.append(pystray.MenuItem(
+                lambda item: f"Обед: {self._lunch_info}",
+                lambda icon, item: None,
+                enabled=False,
+            ))
+
+        items += [
             pystray.Menu.SEPARATOR,
             pystray.MenuItem(
                 "Отложить на 10 мин",
@@ -73,7 +86,8 @@ class TrayIcon:
             ),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem("Выход", lambda icon, item: self._on_quit()),
-        )
+        ]
+        return pystray.Menu(*items)
 
     def start(self, remaining_sec=None):
         """Запустить иконку в отдельном потоке."""
@@ -102,7 +116,9 @@ class TrayIcon:
             self._icon.update_menu()
 
             # Рисуем время на иконке
-            if self.is_break_active:
+            if self.is_lunch_active:
+                self._icon.icon = create_icon_image("#2196F3", "L")
+            elif self.is_break_active:
                 self._icon.icon = create_icon_image("#FF5722", "!")
             elif remaining_sec is not None:
                 minutes = int(remaining_sec) // 60

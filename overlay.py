@@ -23,18 +23,23 @@ def get_virtual_screen_geometry():
 class BreakOverlay:
     """Полноэкранный тёмный оверлей с обратным отсчётом."""
 
-    def __init__(self, root: tk.Tk, duration_sec: int, on_dismiss, exercises=None):
+    def __init__(self, root: tk.Tk, duration_sec: int, on_dismiss, exercises=None,
+                 message=None, show_exercises=True):
         """
         root: главное окно tkinter
         duration_sec: длительность перерыва в секундах
         on_dismiss: callback при нажатии кнопки "Я размялся!"
         exercises: список упражнений (если None — не показываем)
+        message: текст заголовка (по умолчанию MSG_BREAK)
+        show_exercises: показывать ли упражнения
         """
         self.root = root
         self.duration = duration_sec
         self.remaining = duration_sec
         self.on_dismiss = on_dismiss
         self._exercises_list = exercises or []
+        self._message = message or MSG_BREAK
+        self._show_exercises = show_exercises
         self.window = None
         self._button = None
         self._timer_label = None
@@ -70,7 +75,7 @@ class BreakOverlay:
         frame.place(x=cx, y=cy, anchor="center")
 
         self._msg_label = tk.Label(
-            frame, text=MSG_BREAK,
+            frame, text=self._message,
             font=FONT_MESSAGE, fg=TEXT_COLOR, bg=OVERLAY_BG,
         )
         self._msg_label.pack(pady=(0, 10))
@@ -82,7 +87,7 @@ class BreakOverlay:
         self._timer_label.pack(pady=(0, 10))
 
         # Случайные упражнения (3-4 штуки)
-        if self._exercises_list:
+        if self._show_exercises and self._exercises_list:
             selected = random.sample(
                 self._exercises_list, min(4, len(self._exercises_list))
             )
