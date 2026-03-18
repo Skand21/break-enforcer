@@ -29,61 +29,6 @@ DEFAULT_EXERCISES = [
     "Растяжка икр — упор в стену, нога назад",
     "Растяжка грудных — руки в дверном проёме",
     "Кошка-корова стоя — прогиб и округление спины",
-    # Интенсивные / силовые
-    "Приседания",
-    "Приседания с выпрыгиванием",
-    "Приседания сумо — широкая стойка",
-    "Приседания на одной ноге с опорой на стул",
-    "Приседания с паузой внизу",
-    "Выпады вперёд",
-    "Выпады назад",
-    "Выпады в прыжке со сменой ног",
-    "Болгарские выпады — задняя нога на стуле",
-    "Бёрпи",
-    "Бёрпи с отжиманием",
-    "Полубёрпи — без отжимания",
-    "Отжимания от пола",
-    "Отжимания от стола или стены",
-    "Отжимания с широкой постановкой рук",
-    "Отжимания с узкой постановкой рук (алмазные)",
-    "Отжимания с хлопком",
-    "Прыжки на месте",
-    "Прыжки Jumping Jacks",
-    "Прыжки звезда — руки и ноги в стороны в воздухе",
-    "Прыжки на одной ноге",
-    "Высокие прыжки — колени к груди",
-    "Подъём на носочки",
-    "Подъём на носочки на одной ноге",
-    "Бег на месте с высоким подниманием колен",
-    "Бег на месте с захлёстом голени",
-    "Скалолаз — mountain climbers",
-    "Скалолаз перекрёстный — колено к противоположному локтю",
-    "Выпрыгивания из приседа",
-    "Выпрыгивания из глубокого приседа с касанием пола",
-    "Шагающие выпады по комнате",
-    "Подъём коленей к груди стоя",
-    "Боковые выпады",
-    "Конькобежец — прыжки в стороны",
-    "Махи ногой вперёд-назад",
-    "Махи ногой в стороны",
-    "Удары ногами вперёд — front kicks",
-    "Боксёрские удары в воздух — быстрая серия",
-    "Присед-удар ногой — squat + side kick",
-    "Степ-апы на стул или ступеньку",
-    "Обратные отжимания от стула — трицепс",
-    "Пистолетик — присед на одной ноге с опорой",
-    "Упор лёжа — удержание",
-    "Супермен лёжа на полу — подъём рук и ног",
-    "Подъём таза лёжа — ягодичный мостик",
-    "Ягодичный мостик на одной ноге",
-    "Скручивания на пресс лёжа",
-    "Велосипед на пресс лёжа",
-    "Ножницы лёжа — подъём ног попеременно",
-    "Подъём прямых ног лёжа",
-    "V-складка на пресс",
-    "Берёзка — стойка на лопатках",
-    "Приседания у стены — стульчик",
-    "Пружинки в приседе — мини-подпрыгивания",
 ]
 
 # Дефолтные значения
@@ -98,6 +43,13 @@ DEFAULTS = {
     "lunch_enabled": False,
     "lunch_start": "13:00",
     "lunch_end": "14:00",
+    "warning_duration_sec": 30,
+    "sleep_enabled": False,
+    "sleep_start": "23:00",
+    "sleep_end": "07:00",
+    "class_schedule_enabled": False,
+    "class_schedule": [],
+    "auto_shutdown_enabled": False,
 }
 
 
@@ -224,6 +176,72 @@ class Settings:
     def lunch_end(self, value: str):
         if _valid_time(value):
             self._data["lunch_end"] = value
+
+    @property
+    def warning_duration_sec(self) -> int:
+        return self._data["warning_duration_sec"]
+
+    @warning_duration_sec.setter
+    def warning_duration_sec(self, value: int):
+        self._data["warning_duration_sec"] = max(5, min(120, int(value)))
+
+    @property
+    def sleep_enabled(self) -> bool:
+        return self._data["sleep_enabled"]
+
+    @sleep_enabled.setter
+    def sleep_enabled(self, value: bool):
+        self._data["sleep_enabled"] = bool(value)
+
+    @property
+    def sleep_start(self) -> str:
+        return self._data["sleep_start"]
+
+    @sleep_start.setter
+    def sleep_start(self, value: str):
+        if _valid_time(value):
+            self._data["sleep_start"] = value
+
+    @property
+    def sleep_end(self) -> str:
+        return self._data["sleep_end"]
+
+    @sleep_end.setter
+    def sleep_end(self, value: str):
+        if _valid_time(value):
+            self._data["sleep_end"] = value
+
+    @property
+    def class_schedule_enabled(self) -> bool:
+        return self._data["class_schedule_enabled"]
+
+    @class_schedule_enabled.setter
+    def class_schedule_enabled(self, value: bool):
+        self._data["class_schedule_enabled"] = bool(value)
+
+    @property
+    def class_schedule(self) -> list:
+        return self._data["class_schedule"]
+
+    @class_schedule.setter
+    def class_schedule(self, value: list):
+        validated = []
+        for item in value:
+            if (isinstance(item, dict)
+                    and "days" in item and "start" in item and "end" in item
+                    and isinstance(item["days"], list)
+                    and all(isinstance(d, int) and 0 <= d <= 6 for d in item["days"])
+                    and _valid_time(item["start"]) and _valid_time(item["end"])):
+                validated.append(item)
+        self._data["class_schedule"] = validated
+
+    @property
+    def auto_shutdown_enabled(self) -> bool:
+        return self._data["auto_shutdown_enabled"]
+
+    @auto_shutdown_enabled.setter
+    def auto_shutdown_enabled(self, value: bool):
+        self._data["auto_shutdown_enabled"] = bool(value)
 
     # --- Конвертеры в секунды (для остального кода) ---
 

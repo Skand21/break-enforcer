@@ -24,7 +24,7 @@ class BreakOverlay:
     """Полноэкранный тёмный оверлей с обратным отсчётом."""
 
     def __init__(self, root: tk.Tk, duration_sec: int, on_dismiss, exercises=None,
-                 message=None, show_exercises=True):
+                 message=None, show_exercises=True, allow_dismiss=True):
         """
         root: главное окно tkinter
         duration_sec: длительность перерыва в секундах
@@ -32,6 +32,7 @@ class BreakOverlay:
         exercises: список упражнений (если None — не показываем)
         message: текст заголовка (по умолчанию MSG_BREAK)
         show_exercises: показывать ли упражнения
+        allow_dismiss: показывать ли кнопку завершения (False для обеда/сна)
         """
         self.root = root
         self.duration = duration_sec
@@ -40,6 +41,7 @@ class BreakOverlay:
         self._exercises_list = exercises or []
         self._message = message or MSG_BREAK
         self._show_exercises = show_exercises
+        self._allow_dismiss = allow_dismiss
         self.window = None
         self._button = None
         self._timer_label = None
@@ -127,7 +129,12 @@ class BreakOverlay:
         self._enforce_focus()
 
     def _format_time(self, seconds: int) -> str:
-        m, s = divmod(max(0, seconds), 60)
+        seconds = max(0, seconds)
+        if seconds >= 3600:
+            h, remainder = divmod(seconds, 3600)
+            m, s = divmod(remainder, 60)
+            return f"{h:02d}:{m:02d}:{s:02d}"
+        m, s = divmod(seconds, 60)
         return f"{m:02d}:{s:02d}"
 
     def _tick(self):
@@ -136,10 +143,13 @@ class BreakOverlay:
         self.remaining -= 1
         if self.remaining <= 0:
             self._timer_label.config(text="00:00")
-            self._sub_label.config(text="Нажмите кнопку чтобы продолжить работу")
-            self._button.pack(pady=(20, 0))
-            # Разрешаем клик по кнопке
-            self.window.unbind("<Button-1>")
+            if self._allow_dismiss:
+                self._sub_label.config(text="Нажмите кнопку чтобы продолжить работу")
+                self._button.pack(pady=(20, 0))
+                self.window.unbind("<Button-1>")
+            else:
+                self._sub_label.config(text="Блокировка завершена")
+                self.window.after(3000, self._dismiss)
             return
         self._timer_label.config(text=self._format_time(self.remaining))
         self.window.after(1000, self._tick)
@@ -162,6 +172,12 @@ class BreakOverlay:
             user32.SetForegroundWindow(hwnd)
         except Exception:
             pass
+
+    def update_remaining(self, new_remaining: int):
+        """Обновить оставшееся время (для синхронизации с реальным временем)."""
+        self.remaining = new_remaining
+        if self._timer_label and self.window:
+            self._timer_label.config(text=self._format_time(self.remaining))
 
     def _dismiss(self):
         """Закрыть оверлей."""
