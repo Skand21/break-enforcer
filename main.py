@@ -461,7 +461,7 @@ class BreakEnforcer:
         """Выключить компьютер."""
         self._shutdown_triggered = True
         import subprocess
-        subprocess.Popen(["shutdown", "/s", "/f", "/t", "0"])
+        subprocess.Popen(["shutdown", "/s", "/t", "30"])
 
     # ===== Главный таймер =====
 
